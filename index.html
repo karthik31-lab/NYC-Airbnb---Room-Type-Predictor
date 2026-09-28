@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Room Call · NYC listing room-type predictor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22"><circle cx="6" cy="12" r="4" fill="currentColor"/><circle cx="18" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><line x1="10" y1="12" x2="14" y2="12" stroke="currentColor" stroke-width="2"/></svg>
+      </span>
+      <span class="brand-name">Room&nbsp;Call</span>
+    </div>
+    <div class="api-config">
+      <label for="apiBase">Server</label>
+      <input id="apiBase" type="text" inputmode="url" spellcheck="false" placeholder="http://127.0.0.1:8000" />
+      <span id="apiStatus" class="api-status" data-state="unknown" title="Server status">●</span>
+    </div>
+  </header>
+
+  <main class="layout">
+
+    <section class="mapside" aria-label="New York City borough map">
+      <div class="map-frame" id="mapFrame">
+        <canvas id="subwayMap"></canvas>
+        <button type="button" class="station" data-borough="Bronx" style="left:62%; top:9%;">
+          <span class="dot"></span><span class="label">Bronx</span>
+        </button>
+        <button type="button" class="station" data-borough="Manhattan" style="left:49%; top:33%;">
+          <span class="dot"></span><span class="label">Manhattan</span>
+        </button>
+        <button type="button" class="station" data-borough="Queens" style="left:79%; top:47%;">
+          <span class="dot"></span><span class="label">Queens</span>
+        </button>
+        <button type="button" class="station" data-borough="Brooklyn" style="left:55%; top:67%;">
+          <span class="dot"></span><span class="label">Brooklyn</span>
+        </button>
+        <button type="button" class="station" data-borough="Staten Island" style="left:17%; top:83%;">
+          <span class="dot"></span><span class="label">Staten Island</span>
+        </button>
+      </div>
+
+      <div class="mapside-copy">
+        <p class="eyebrow-plain">A listing, decoded</p>
+        <h1>Every listing<br/>tells on itself.</h1>
+        <p class="lede">Feed it where a place sits, what it costs, and how it's booked — the model reads the pattern and calls it: entire place, private room, or shared.</p>
+        <p class="hint">Tap a borough to drop your coordinates there, or type your own below.</p>
+      </div>
+    </section>
+
+    <section class="formside">
+
+      <form id="predictForm" novalidate>
+
+        <fieldset class="group">
+          <legend>Location</legend>
+
+          <div class="field">
+            <label for="neighbourhood_group">Borough</label>
+            <select id="neighbourhood_group" name="neighbourhood_group" required>
+              <option value="" disabled selected>Choose a borough</option>
+              <option>Manhattan</option>
+              <option>Brooklyn</option>
+              <option>Queens</option>
+              <option>Bronx</option>
+              <option>Staten Island</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="neighbourhood">Neighbourhood</label>
+            <input id="neighbourhood" name="neighbourhood" type="text" list="neighbourhoodList" autocomplete="off" placeholder="Start typing…" required />
+            <datalist id="neighbourhoodList"></datalist>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="latitude">Latitude</label>
+              <input id="latitude" name="latitude" type="number" step="0.0001" min="-90" max="90" placeholder="40.7128" required />
+            </div>
+            <div class="field">
+              <label for="longitude">Longitude</label>
+              <input id="longitude" name="longitude" type="number" step="0.0001" min="-180" max="180" placeholder="-74.0060" required />
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="group">
+          <legend>Price &amp; stay</legend>
+
+          <div class="field slider-field">
+            <label for="price">Price per night <span class="unit">USD</span></label>
+            <div class="slider-row">
+              <input id="price" name="price" type="range" min="0" max="1000" step="1" value="120" />
+              <input id="price_num" type="number" min="1" step="1" value="120" />
+            </div>
+          </div>
+
+          <div class="field slider-field">
+            <label for="minimum_nights">Minimum nights</label>
+            <div class="slider-row">
+              <input id="minimum_nights" name="minimum_nights" type="range" min="1" max="365" step="1" value="3" />
+              <input id="minimum_nights_num" type="number" min="1" max="365" step="1" value="3" />
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="group">
+          <legend>Track record</legend>
+
+          <div class="field slider-field">
+            <label for="number_of_reviews">Total reviews</label>
+            <div class="slider-row">
+              <input id="number_of_reviews" name="number_of_reviews" type="range" min="0" max="500" step="1" value="15" />
+              <input id="number_of_reviews_num" type="number" min="0" step="1" value="15" />
+            </div>
+          </div>
+
+          <div class="field slider-field">
+            <label for="reviews_per_month">Reviews per month</label>
+            <div class="slider-row">
+              <input id="reviews_per_month" name="reviews_per_month" type="range" min="0" max="20" step="0.1" value="1.2" />
+              <input id="reviews_per_month_num" type="number" min="0" step="0.1" value="1.2" />
+            </div>
+          </div>
+
+          <div class="field slider-field">
+            <label for="calculated_host_listings_count">Host's total listings</label>
+            <div class="slider-row">
+              <input id="calculated_host_listings_count" name="calculated_host_listings_count" type="range" min="0" max="100" step="1" value="1" />
+              <input id="calculated_host_listings_count_num" type="number" min="0" step="1" value="1" />
+            </div>
+          </div>
+
+          <div class="field slider-field">
+            <label for="availability_365">Available days per year</label>
+            <div class="slider-row">
+              <input id="availability_365" name="availability_365" type="range" min="0" max="365" step="1" value="180" />
+              <input id="availability_365_num" type="number" min="0" max="365" step="1" value="180" />
+            </div>
+          </div>
+        </fieldset>
+
+        <button type="submit" class="predict-btn" id="predictBtn">
+          <span class="btn-label">Predict room type</span>
+          <span class="btn-spinner" aria-hidden="true"></span>
+        </button>
+      </form>
+
+      <div class="result" id="result" hidden>
+        <p class="result-kicker">Best guess</p>
+        <div class="result-headline">
+          <span class="result-dot" id="resultDot"></span>
+          <h2 id="resultType">—</h2>
+        </div>
+        <p class="result-desc" id="resultDesc"></p>
+
+        <div class="probs" id="probs"></div>
+      </div>
+
+      <div class="error" id="errorBox" role="alert" hidden>
+        <p class="error-title">Couldn't reach the server</p>
+        <p class="error-body" id="errorBody"></p>
+        <button type="button" class="retry-btn" id="retryBtn">Try again</button>
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <span>Trained on New York City short-term rental listings · Random Forest classifier</span>
+  </footer>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
